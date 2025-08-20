@@ -1,0 +1,111 @@
+{
+  "window": {
+    "title": "AWG Automation GUI",
+    "width": 1000,
+    "height": 600
+  },
+ 
+  
+  "waveforms": {
+    "options":{
+    "Sine": {
+      "filename": "sine.csv"
+    },
+    "PRBS": {
+      "filename": "prbs.csv"
+    },
+    "Noise": {
+      "filename": "noise.csv"
+    },
+    "LFM": {
+      "filename": "lfm.csv"
+    },
+    "stepLFM": {
+      "filename": "step_lfm.csv"
+    }
+  }},
+
+  "tabs": {
+  "Settings": true,
+  "Channel 1": true,
+  "Channel 2": true,
+  "Channel 1 Output": false,
+  "Channel 2 Output": false,
+  "combined waveform": true
+  },
+
+  
+  "buttons":{
+    "connect":{
+        "label": "Connect"
+    },
+    "disconnect":{
+        "label": "Disconnect"
+    },
+    "CH1_Enable":{
+        "label": "CH1 Enable"
+    },
+    "CH1_Disable":{
+        "label": "CH1 Disable"
+    },
+    "CH2_Enable":{
+        "label": "CH2 Enable"
+    },
+    "CH2_Disable":{
+        "label": "CH2 Disable"
+    },
+    "Generate_waveform":{
+        "label": "Generate waveform"
+    },
+    "Define_segment":{
+        "label": "Define segment"
+    },
+    "Delete_segment":{
+        "label": "Delete segment"
+    },
+    "Define_file_path":{
+        "label": "Define file path"
+    },
+    "run":{
+        "label": "Run"
+    },
+    "abort":{
+        "label": "Abort"
+    },
+    "output1_enable":{
+        "label": "Enable Output"
+    },
+    "output1_disable":{
+        "label": "Disable Output"
+    },
+    "output2_enable":{
+        "label": "Enable Output 2"
+    },
+    "output2_disable":{
+        "label": "Disable Output 2"
+    },
+    "set_voltage":{
+        "label": "Set Output Voltage"
+    },
+    "set_low_level":{
+        "label": "Set Output Low"
+    },
+    "set_high_level":{
+        "label": "Set Output High"
+    },
+    "set_offset":{
+        "label": "Set Output Offset"
+    },
+    "set_termination":{
+        "label": "Set Output Termination Voltage"
+    },
+    "browse":{
+        "label": "Browse"
+    },
+    "upload":{
+        "label": "Upload Waveform"
+    }
+    
+  }
+}
+
