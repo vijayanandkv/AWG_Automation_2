@@ -23,7 +23,7 @@ from CombinedWaveformGenerator import CombinedWaveformGenerator
 
 
 import PyQt5.QtWidgets as QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout, QFormLayout
 
 
 class AWG_GUI_handler:
@@ -674,66 +674,103 @@ class AWG_GUI_handler:
         self.gui.step_lfm_param_grp.setEnabled(self.gui.step_lfm_check_bx.isChecked())
     
     def handle_combined_waveform(self):
-        fig = make_subplots(rows=1, cols=2, subplot_titles=("Combined Waveform", "FFT of Combined Waveform"))
-        num_samples = int(self.gui.num_samples_input.text().strip())
-        combined_waveform = CombinedWaveformGenerator()
+        fig = make_subplots(rows=2, cols=1, subplot_titles=("Combined Waveform", "FFT of Combined Waveform"))
 
+        # --- number of samples ---
+        try:
+            num_samples = int(self.gui.num_samples_input.text().strip())
+        except ValueError:
+            QMessageBox.warning(self.gui, "Input Required", "Please enter a valid number of samples")
+            self.gui.log_box.append("❌ Please enter a valid number of samples")
+            return
+
+        combined_waveform = CombinedWaveformGenerator()
+        wave = np.zeros(num_samples)
+
+        # --- folder to save ---
         combined_folder = QFileDialog.getExistingDirectory(self.gui, "Select Folder to Save CSV") 
+        if not combined_folder:
+            return
         datetime_1 = datetime.now().strftime("%Y%m%d_%H%M")
         self.folder_name = f"combined_{datetime_1}"
         full_path = os.path.join(combined_folder, self.folder_name)
         os.makedirs(full_path, exist_ok=True)
-        
-        if not num_samples:
-            QMessageBox.warning(self.gui, "Input Required", "Please enter the number of samples")
-            self.gui.log_box.append("❌ Please enter the number of samples")
-        wave = np.zeros(num_samples)
 
-        if self.gui.sine_check_bx.isChecked():
-            frequency = float(self.gui.sine_frequency.text().strip())
-            t, w1 = combined_waveform.sinusoidal(num_samples=num_samples, frequency=frequency)
-            wave += w1
-        if self.gui.prbs_check_bx.isChecked():
-            order = float(self.gui.prbs_order.text().strip())
-            repetition_rate = int(self.gui.prbs_repetition_rate.text().strip())
-            t, w2 = combined_waveform.PRBS(num_samples=num_samples, order=order, repetition_rate=repetition_rate)
-            wave += w2
-        if self.gui.lfm_check_bx.isChecked():
-            center_freq = float(self.gui.lfm_center_freq.text().strip())
-            bandwidth = float(self.gui.lfm_bandwidth.text().strip())
-            pulse_width = int(self.gui.lfm_pulse_width.text().strip())
-            t, w3 = combined_waveform.generate_lfm(num_samples=num_samples, center_freq=center_freq, 
-                                                   bandwidth=bandwidth, pulse_width=pulse_width)
-            wave += w3
-        if self.gui.noise_check_bx.isChecked():
-            variance = float(self.gui.noise_variance.text().strip())
-            t, w4 = combined_waveform.generate_noise(num_samples=num_samples, variance=variance)
-            wave += w4
-        if self.gui.step_lfm_check_bx.isChecked():
-            start_freq = float(self.gui.step_lfm_start_freq.text().strip())
-            stop_freq = float(self.gui.step_lfm_stop_freq.text().strip())
-            step_freq = float(self.gui.step_lfm_step_freq.text().strip())
-            dwell_time = float(self.gui.step_lfm_dwell_time.text().strip())
-            t, w5 = combined_waveform.generate_steplfm(num_samples=num_samples, start_freq=start_freq, 
-                                                       stop_freq=stop_freq, step_freq=step_freq, 
-                                                       dwell_time=dwell_time)
-            wave += w5
+        # --- loop through waveform slots ---
+        for i, cb in enumerate(self.gui.wave_boxes):
+            if not cb.isChecked():
+                continue
+
+            wf_type = self.gui.dropdown_boxes[i].currentText()
+            if wf_type == "Select":
+                continue
+
+            params = {}
+            # get parameter widgets from param_groups[i]
+            param_layout = self.gui.param_groups[i].layout()
+            for j in range(param_layout.rowCount()):
+                label_item = param_layout.itemAt(j, QFormLayout.LabelRole)
+                field_item = param_layout.itemAt(j, QFormLayout.FieldRole)
+                if label_item and field_item:
+                    key = label_item.widget().text().rstrip(":")
+                    val = field_item.widget().text().strip()
+                    params[key] = val
+
+            # --- generate waveform based on type ---
+            if wf_type == "Sine":
+                frequency = float(params.get("Frequency", 1e6))
+                t, w = combined_waveform.sinusoidal(num_samples=num_samples, frequency=frequency)
+            elif wf_type == "PRBS":
+                order = int(params.get("Order", 7))
+                repetition_rate = int(params.get("Repetition Rate", 1e6))
+                t, w = combined_waveform.PRBS(num_samples=num_samples, order=order, repetition_rate=repetition_rate)
+            elif wf_type == "LFM":
+                center_freq = float(params.get("Center Freq", 1e6))
+                bandwidth = float(params.get("Bandwidth", 1e6))
+                pulse_width = int(params.get("Pulse Width", 100))
+                t, w = combined_waveform.generate_lfm(num_samples=num_samples, center_freq=center_freq,
+                                                      bandwidth=bandwidth, pulse_width=pulse_width)
+            elif wf_type == "Step LFM":
+                start_freq = float(params.get("Start Freq", 1e6))
+                stop_freq = float(params.get("Stop Freq", 2e6))
+                step_freq = float(params.get("Step Freq", 1e5))
+                dwell_time = float(params.get("Dwell Time", 10))
+                t, w = combined_waveform.generate_steplfm(num_samples=num_samples, start_freq=start_freq,
+                                                          stop_freq=stop_freq, step_freq=step_freq,
+                                                          dwell_time=dwell_time)
+            elif wf_type == "Noise":
+                variance = float(params.get("Variance", 1))
+                t, w = combined_waveform.generate_noise(num_samples=num_samples, variance=variance)
+            else:
+                continue
+
+            wave += w
+
+        # --- FFT ---
         f, x = self.fft_signal(wave, iota=2)
         t = np.arange(num_samples) / 7.2e9
+
+        # --- save ---
         self.save_waveform_to_csv(waveform_data=wave, waveform_type="combined", channel='channel', folder=full_path)
-        fig.add_trace(go.Scatter(x = t * 1e9, y=wave, mode='lines', name='Combined Waveform'), 
-                      row=1, col=1)
-        fig.add_trace(go.Scatter(x = f, y=x, mode='lines', name='FFT of Combined Waveform'), 
-                      row=1, col=2)
-        
+        if self.gui.ch1_cb.isChecked():
+            channel = 1
+            self.handle_upload_waveform(channel=channel, file_path=full_path)
+        elif self.gui.ch2_cb.isChecked():
+            channel = 2
+            self.handle_upload_waveform(channel=channel, file_path=full_path)
+        else:
+            QMessageBox.warning(self.gui, "Channel required", "Select a channel")        
+
+        # --- plot ---
+        fig.add_trace(go.Scatter(x=t * 1e9, y=wave, mode='lines', name='Combined Waveform'), row=1, col=1)
+        fig.add_trace(go.Scatter(x=f, y=x, mode='lines', name='FFT of Combined Waveform'), row=2, col=1)
+
         fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
-        fig.update_yaxes(title_text="Frequency", row=1, col=1)
-        fig.update_xaxes(title_text="F (GHz)", row=1, col=2)
-        fig.update_yaxes(title_text="Power dBm", row=1, col=2)
+        fig.update_yaxes(title_text="Amplitude", row=2, col=1)
+        fig.update_xaxes(title_text="F (GHz)", row=2, col=1)
+        fig.update_yaxes(title_text="Power dBm", row=2, col=1)
 
         html = pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
-        getattr(self.gui, f"plot_view").setHtml(html)
+        self.gui.plot_view.setHtml(html)
 
-
-
-           
+    

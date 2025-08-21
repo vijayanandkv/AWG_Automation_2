@@ -7,7 +7,7 @@ from scipy import signal
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QGroupBox,
     QLabel, QPushButton, QLineEdit, QTextEdit, QComboBox, QFileDialog, QFormLayout,
-    QMessageBox, QCheckBox
+    QMessageBox, QCheckBox, QScrollArea
 )
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QPixmap, QColor, QPainter
@@ -566,124 +566,133 @@ class AWGGui(QMainWindow):
         self.channel_2_output_tab.setLayout(layout)
 
     def init_combined_waveform_tab(self):
+       layout = QHBoxLayout()
 
-        layout = QHBoxLayout()
-        side_panel = QVBoxLayout()
-        main_panel = QVBoxLayout()
+       # ===== SIDE PANEL (scrollable) =====
+       side_widget = QWidget()
+       side_panel = QVBoxLayout(side_widget)   # ✅ create layout and attach to widget
 
-        #Select Sine Wave check box
-        self.sine_check_grp = QGroupBox("Select Sine Wave")
-        sine_check_layout = QHBoxLayout()
-        self.sine_check_bx = QCheckBox("Sine Wave")
-        self.sine_check_bx.stateChanged.connect(lambda: self.handler.toggle_wave_selector_check())
-        self.prbs_check_bx = QCheckBox("PRBS")
-        self.prbs_check_bx.stateChanged.connect(lambda: self.handler.toggle_wave_selector_check())
-        self.lfm_check_bx = QCheckBox("LFM")
-        self.lfm_check_bx.stateChanged.connect(lambda: self.handler.toggle_wave_selector_check())
-        self.noise_check_bx = QCheckBox("Noise")
-        self.noise_check_bx.stateChanged.connect(lambda: self.handler.toggle_wave_selector_check())
-        self.step_lfm_check_bx = QCheckBox("Step LFM")
-        self.step_lfm_check_bx.stateChanged.connect(lambda: self.handler.toggle_wave_selector_check())
+       scroll_area = QScrollArea()
+       scroll_area.setWidgetResizable(True)
+       scroll_area.setWidget(side_widget)      # ✅ connect side_widget to scroll
 
-        sine_check_layout.addWidget(self.sine_check_bx)
-        sine_check_layout.addWidget(self.prbs_check_bx)
-        sine_check_layout.addWidget(self.lfm_check_bx)
-        sine_check_layout.addWidget(self.noise_check_bx)
-        sine_check_layout.addWidget(self.step_lfm_check_bx)
-        self.sine_check_grp.setLayout(sine_check_layout)
-        side_panel.addWidget(self.sine_check_grp)
+       # ---- Channels ----
+       channel_box = QGroupBox("Select Channels")
+       ch_layout = QHBoxLayout()
+       self.ch1_cb = QCheckBox("Channel 1")
+       self.ch2_cb = QCheckBox("Channel 2")
+       ch_layout.addWidget(self.ch1_cb)
+       ch_layout.addWidget(self.ch2_cb)
+       channel_box.setLayout(ch_layout)
+       side_panel.addWidget(channel_box)
 
-        #parameters for sine wave
-        self.sine_param_grp = QGroupBox("Sine Wave Parameters")
-        sine_param_layout = QFormLayout()
-        self.sine_frequency = QLineEdit()
-        sine_param_layout.addRow("Frequency", self.sine_frequency)
-        self.sine_param_grp.setLayout(sine_param_layout)
-        self.sine_param_grp.setEnabled(False)
-        side_panel.addWidget(self.sine_param_grp)
+       # ---- Waveform controls ----
+       self.wave_boxes = []
+       self.dropdown_boxes = []
+       self.param_groups = []
 
+       for i in range(5):
+           cb = QCheckBox(f"Waveform {i+1}")
+           cb.stateChanged.connect(self.toggle_dropdown)
+           self.wave_boxes.append(cb)
 
-        #parameters for PRBS
-        self.prbs_param_grp = QGroupBox("PRBS Parameters")
-        prbs_param_layout = QFormLayout()
-        self.prbs_order = QLineEdit()
-        prbs_param_layout.addRow("Order:", self.prbs_order)
-        self.prbs_repetition_rate = QLineEdit() 
-        prbs_param_layout.addRow("Repetition Rate (MHz):", self.prbs_repetition_rate)
-        self.prbs_param_grp.setLayout(prbs_param_layout)
-        self.prbs_param_grp.setEnabled(False)
-        side_panel.addWidget(self.prbs_param_grp)
+           dropdown = QComboBox()
+           dropdown.addItems(["Select", "Sine", "PRBS", "LFM", "Step LFM", "Noise"])
+           dropdown.currentIndexChanged.connect(self.show_parameters)
+           dropdown.setVisible(False)
+           self.dropdown_boxes.append(dropdown)
 
-        #parameters for LFM
-        self.lfm_param_grp = QGroupBox("LFM Parameters")
-        lfm_param_layout = QFormLayout()
-        self.lfm_center_freq = QLineEdit()  
-        lfm_param_layout.addRow("Center Frequency (GHz):", self.lfm_center_freq)
-        self.lfm_bandwidth = QLineEdit()
-        lfm_param_layout.addRow("Bandwidth (GHz):", self.lfm_bandwidth)
-        self.lfm_pulse_width = QLineEdit()
-        lfm_param_layout.addRow("Pulse Width (ns):", self.lfm_pulse_width)
-        self.lfm_param_grp.setLayout(lfm_param_layout)
-        self.lfm_param_grp.setEnabled(False)
-        side_panel.addWidget(self.lfm_param_grp)
+           param_group = QGroupBox(f"Parameters for Waveform {i+1}")
+           param_group.setVisible(False)
+           param_layout = QFormLayout()
+           param_group.setLayout(param_layout)
+           self.param_groups.append(param_group)
 
-        #parameters for Noise
-        self.noise_param_grp = QGroupBox("Noise Parameters")
-        noise_param_layout = QFormLayout()
-        self.noise_variance = QLineEdit()
-        noise_param_layout.addRow("Variance (Hz):", self.noise_variance)
-        self.noise_param_grp.setLayout(noise_param_layout)
-        self.noise_param_grp.setEnabled(False)
-        side_panel.addWidget(self.noise_param_grp)
+           side_panel.addWidget(cb)
+           side_panel.addWidget(dropdown)
+           side_panel.addWidget(param_group)
 
-        #parameters for Step LFM
-        self.step_lfm_param_grp = QGroupBox("Step LFM Parameters")
-        step_lfm_param_layout = QFormLayout()
-        self.step_lfm_start_freq = QLineEdit()
-        step_lfm_param_layout.addRow("Starting Frequency (GHz):", self.step_lfm_start_freq)
-        self.step_lfm_stop_freq = QLineEdit()
-        step_lfm_param_layout.addRow("Stopping Frequency (GHz):", self.step_lfm_stop_freq)
-        self.step_lfm_step_freq = QLineEdit()
-        step_lfm_param_layout.addRow("Step Frequency (GHz):", self.step_lfm_step_freq)
-        self.step_lfm_dwell_time = QLineEdit()
-        step_lfm_param_layout.addRow("Dwell Time (ns):", self.step_lfm_dwell_time)
-        self.step_lfm_param_grp.setLayout(step_lfm_param_layout)
-        self.step_lfm_param_grp.setEnabled(False)
-        side_panel.addWidget(self.step_lfm_param_grp)
+       # ---- Common parameters ----
+       num_samples_group = QGroupBox("Common Parameters")
+       num_samples_layout = QFormLayout()
+       self.num_samples_input = QLineEdit()
+       num_samples_layout.addRow("Number of Samples:", self.num_samples_input)
+       num_samples_group.setLayout(num_samples_layout)
+       side_panel.addWidget(num_samples_group)
 
-        #common num samples 
-        num_samples_group = QGroupBox("Common Parameters")
-        num_samples_layout = QFormLayout()
-        self.num_samples_input = QLineEdit()
-        num_samples_layout.addRow("Number of Samples:", self.num_samples_input)
-        num_samples_group.setLayout(num_samples_layout)
-        side_panel.addWidget(num_samples_group)
-        
+       # ---- Generate button ----
+       self.generate_wave_group = QGroupBox()
+       generate_wave_layout = QFormLayout()
+       self.generate_wave_btn = QPushButton(CONFIG['buttons']['Generate_waveform']['label'])
+       generate_wave_layout.addRow(self.generate_wave_btn)
+       self.generate_wave_group.setLayout(generate_wave_layout)
+       side_panel.addWidget(self.generate_wave_group)
 
-        #Generate waveform button
-        self.generate_wave_group = QGroupBox()
-        generate_wave_layout = QFormLayout()
-        self.generate_wave_btn = QPushButton(CONFIG['buttons']['Generate_waveform']['label'])
-        generate_wave_layout.addRow(self.generate_wave_btn)
-        self.generate_wave_group.setLayout(generate_wave_layout)
-        side_panel.addWidget(self.generate_wave_group)
+       side_panel.addStretch()
 
-        #plot group
-        plot_group = QGroupBox("Sample waveform")
-        plot_layout = QHBoxLayout()
-        self.plot_view = QWebEngineView()
-        plot_layout.addWidget(self.plot_view)
-        plot_group.setLayout(plot_layout)
-        main_panel.addWidget(plot_group)
+       # ===== PLOT PANEL =====
+       main_panel = QVBoxLayout()
+       plot_group = QGroupBox("Sample waveform")
+       plot_layout = QHBoxLayout()
+       self.plot_view = QWebEngineView()
+       plot_layout.addWidget(self.plot_view)
+       plot_group.setLayout(plot_layout)
+       main_panel.addWidget(plot_group)
 
-        #connect buttons
-        self.generate_wave_btn.clicked.connect(self.handler.handle_combined_waveform)
+       # ---- Connect button ----
+       self.generate_wave_btn.clicked.connect(self.handler.handle_combined_waveform)
 
-        layout.addLayout(side_panel, 1)
-        layout.addLayout(main_panel, 3)
-        self.combined_waveform_tab.setLayout(layout)
+       # ===== COMBINE =====
+       layout.addWidget(scroll_area, 1)
+       layout.addLayout(main_panel, 3)  # ✅ main_panel is a layout, not a widget
+       self.combined_waveform_tab.setLayout(layout)
+    
 
-        
+    def toggle_dropdown(self, state):
+        for i, cb in enumerate(self.wave_boxes):
+            if self.sender() == cb:
+                self.dropdown_boxes[i].setVisible(cb.isChecked())
+                if not cb.isChecked():
+                    self.param_groups[i].setVisible(False)
+
+    def show_parameters(self, index):
+        for i, dropdown in enumerate(self.dropdown_boxes):
+            if self.sender() == dropdown:
+                if index == 0:
+                    self.param_groups[i].setVisible(False)
+                    return
+
+                param_group = self.param_groups[i]
+                layout = param_group.layout()
+                while layout.count():
+                    item = layout.takeAt(0)
+                    widget = item.widget()
+                    if widget: widget.deleteLater()
+
+                wf_type = dropdown.currentText()
+
+                if wf_type == "Sine":
+                    layout.addRow("Frequency (GHz):", QLineEdit())
+                    
+                elif wf_type == "PRBS":
+                    layout.addRow("Order:", QLineEdit())
+                    layout.addRow("Repetition Rate:", QLineEdit())
+
+                elif wf_type == "LFM":
+                    layout.addRow("Center Freq (GHz):", QLineEdit())
+                    layout.addRow("Bandwidth (GHz):", QLineEdit())
+                    layout.addRow("Pulse width (ns): ", QLineEdit())
+
+                elif wf_type == "Step LFM":
+                    layout.addRow("Start Frequency (GHz):", QLineEdit())
+                    layout.addRow("Stop Frequency (GHz):", QLineEdit())
+                    layout.addRow("Step Frequency (GHz):", QLineEdit())
+                    layout.addRow("Dwell Time (ns):", QLineEdit())
+
+                elif wf_type == "Noise":
+                    layout.addRow("Variance:", QLineEdit())
+
+                param_group.setVisible(True)
 
 
         

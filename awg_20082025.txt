@@ -1,0 +1,2 @@
+Log file created for AWG at 2025-08-20 10:46:44.636203 
+[2025-08-20 10:46:44] SCPI: generate sine wave | Response: Successfully generated
