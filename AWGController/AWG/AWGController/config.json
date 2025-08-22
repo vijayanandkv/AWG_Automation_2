@@ -8,6 +8,9 @@
   
   "waveforms": {
     "options":{
+    "Select": {
+        "filename": ""
+    },
     "Sine": {
       "filename": "sine.csv"
     },

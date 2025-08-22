@@ -570,17 +570,19 @@ class AWGGui(QMainWindow):
 
        # ===== SIDE PANEL (scrollable) =====
        side_widget = QWidget()
-       side_panel = QVBoxLayout(side_widget)   # ✅ create layout and attach to widget
+       side_panel = QVBoxLayout(side_widget)   # create layout and attach to widget
 
        scroll_area = QScrollArea()
        scroll_area.setWidgetResizable(True)
-       scroll_area.setWidget(side_widget)      # ✅ connect side_widget to scroll
+       scroll_area.setWidget(side_widget)      # connect side_widget to scroll
 
        # ---- Channels ----
        channel_box = QGroupBox("Select Channels")
        ch_layout = QHBoxLayout()
        self.ch1_cb = QCheckBox("Channel 1")
        self.ch2_cb = QCheckBox("Channel 2")
+       self.ch1_cb.stateChanged.connect(self.handler.toggle_ch_bx)
+       self.ch2_cb.stateChanged.connect(self.handler.toggle_ch_bx)
        ch_layout.addWidget(self.ch1_cb)
        ch_layout.addWidget(self.ch2_cb)
        channel_box.setLayout(ch_layout)
@@ -590,6 +592,7 @@ class AWGGui(QMainWindow):
        self.wave_boxes = []
        self.dropdown_boxes = []
        self.param_groups = []
+       channel = self.select_run_channel()
 
        for i in range(5):
            cb = QCheckBox(f"Waveform {i+1}")
@@ -616,15 +619,28 @@ class AWGGui(QMainWindow):
        num_samples_group = QGroupBox("Common Parameters")
        num_samples_layout = QFormLayout()
        self.num_samples_input = QLineEdit()
+       setattr(self, f'ch{channel}_start_amp', QLineEdit())
+       setattr(self, f'ch{channel}_stop_amp', QLineEdit())
+       setattr(self, f'ch{channel}_step_amp', QLineEdit())
+       num_samples_layout.addRow("start amplitude", getattr(self, f'ch{channel}_start_amp'))
+       num_samples_layout.addRow("stop amplitude", getattr(self, f'ch{channel}_stop_amp'))
+       num_samples_layout.addRow("step amplitude", getattr(self, f'ch{channel}_step_amp'))
        num_samples_layout.addRow("Number of Samples:", self.num_samples_input)
        num_samples_group.setLayout(num_samples_layout)
        side_panel.addWidget(num_samples_group)
 
-       # ---- Generate button ----
+       # ---- Generate, run, and abort buttons ----
        self.generate_wave_group = QGroupBox()
        generate_wave_layout = QFormLayout()
-       self.generate_wave_btn = QPushButton(CONFIG['buttons']['Generate_waveform']['label'])
-       generate_wave_layout.addRow(self.generate_wave_btn)
+       run_abrt_layout = QHBoxLayout()
+       generate_wave_btn = QPushButton(CONFIG['buttons']['Generate_waveform']['label'])
+       run_btn = QPushButton(CONFIG["buttons"]['run']['label'])
+       abrt_btn = QPushButton(CONFIG['buttons']['abort']['label'])
+       
+       generate_wave_layout.addRow(generate_wave_btn)
+       run_abrt_layout.addWidget(run_btn)
+       run_abrt_layout.addWidget(abrt_btn)
+       generate_wave_layout.addRow(run_abrt_layout)
        self.generate_wave_group.setLayout(generate_wave_layout)
        side_panel.addWidget(self.generate_wave_group)
 
@@ -639,8 +655,10 @@ class AWGGui(QMainWindow):
        plot_group.setLayout(plot_layout)
        main_panel.addWidget(plot_group)
 
-       # ---- Connect button ----
-       self.generate_wave_btn.clicked.connect(self.handler.handle_combined_waveform)
+       # ---- Connect buttons ----
+       generate_wave_btn.clicked.connect(lambda: self.handler.handle_combined_waveform(channel=channel))
+       run_btn.clicked.connect(lambda:self.handler.run(channel=channel))
+       abrt_btn.clicked.connect(lambda:self.handler.handle_abort(channel=channel))
 
        # ===== COMBINE =====
        layout.addWidget(scroll_area, 1)
@@ -693,6 +711,14 @@ class AWGGui(QMainWindow):
                     layout.addRow("Variance:", QLineEdit())
 
                 param_group.setVisible(True)
+
+    def select_run_channel(self):
+        state_1 = self.ch1_cb.isChecked()
+        state_2 = self.ch2_cb.isChecked()
+        if state_1 and not state_2:
+            return 1
+        elif state_2 and not state_1:
+            return 2 
 
 
         

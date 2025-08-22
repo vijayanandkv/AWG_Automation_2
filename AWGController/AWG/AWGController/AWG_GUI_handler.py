@@ -34,11 +34,10 @@ class AWG_GUI_handler:
 
     def handle_generate_waveform(self, channel):
          
-        inputs = self.get_channel_inputs(channel)
         waveform_type = getattr(self.gui, f"ch{channel}_waveform_selector").currentText()
 
         # Validate inputs
-        is_valid, error_msg = self.validate_inputs(channel, inputs, waveform_type)
+        is_valid, error_msg = self.validate_inputs(channel, waveform_type)
         if not is_valid:
             QMessageBox.warning(self.gui, "Input Required", error_msg)
             self.gui.log_box.append(f"⚠️ {error_msg}")
@@ -51,7 +50,7 @@ class AWG_GUI_handler:
         os.makedirs(full_path, exist_ok=True)
 
         if waveform_type == "Sine":
-            fig = make_subplots(rows = 1, cols = 2, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
+            fig = make_subplots(rows = 2, cols = 1, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
             self.generator = WaveformGenerator(ip_address='1.00.0')
             start = float(getattr(self.gui, f"ch{channel}_start_freq").text().strip())
             stop= float(getattr(self.gui, f"ch{channel}_stop_freq").text().strip())
@@ -62,19 +61,19 @@ class AWG_GUI_handler:
                 freq, x = self.fft_signal(w, iota=2)
                 # Plot waveform
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w.astype(float), mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=1)
-                fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=2)                
+                fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=2, col=1)                
                 self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
                 
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
-            fig.update_xaxes(title_text="F (GHz)", row=1, col=2)
-            fig.update_yaxes(title_text="Power dBm", row=1, col=2)
+            fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
+            fig.update_yaxes(title_text="Power dBm", row = 2, col= 1)
                 
             html = pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
             getattr(self.gui, f"ch{channel}_plot_view").setHtml(html)
 
         elif waveform_type == "PRBS":
-            fig = make_subplots(rows = 1, cols = 2, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
+            fig = make_subplots(rows = 2, cols= 1, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
             self.generator = WaveformGenerator(ip_address='1.00.0')
             start = float(getattr(self.gui, f"ch{channel}_start_order").text().strip())
             stop= float(getattr(self.gui, f"ch{channel}_stop_order").text().strip())
@@ -86,20 +85,20 @@ class AWG_GUI_handler:
                 freq, x = self.fft_signal(w, iota=2)
                 # Plot waveform
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w, mode='lines', name=f"{waveform_type}_{f:.2f} GHz", line=dict(shape="hv")), row=1, col=1)
-                fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=2)
+                fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row = 2, col= 1)
                   
                 self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
                 
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
-            fig.update_xaxes(title_text="F (GHz)", row=1, col=2)
-            fig.update_yaxes(title_text="Power dBm", row=1, col=2)
+            fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
+            fig.update_yaxes(title_text="Power dBm", row = 2, col= 1)
                 
             html = pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
             getattr(self.gui, f"ch{channel}_plot_view").setHtml(html)
 
         elif waveform_type == "LFM":
-            fig = make_subplots(rows = 1, cols = 2, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
+            fig = make_subplots(rows = 2, cols= 1, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
             self.generator = WaveformGenerator(ip_address='1.00.0')
             start = float(getattr(self.gui, f"ch{channel}_start_center_freq").text().strip())
             stop= float(getattr(self.gui, f"ch{channel}_stop_center_freq").text().strip())
@@ -112,20 +111,20 @@ class AWG_GUI_handler:
                 freq, wave = self.fft_signal(w, iota=2)
                 # Plot waveform
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=1)
-                fig.add_trace(go.Scatter(x=freq, y=wave, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=2)
+                fig.add_trace(go.Scatter(x=freq, y=wave, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row = 2, col= 1)
                     
                 self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
                 
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
-            fig.update_xaxes(title_text="F (GHz)", row=1, col=2)
-            fig.update_yaxes(title_text="Power dBm", row=1, col=2)
+            fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
+            fig.update_yaxes(title_text="Power dBm", row = 2, col= 1)
                 
             html = pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
             getattr(self.gui, f"ch{channel}_plot_view").setHtml(html)
 
         elif waveform_type == "Noise":
-            fig = make_subplots(rows = 1, cols = 2, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
+            fig = make_subplots(rows = 2, cols= 1, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
             self.generator = WaveformGenerator(ip_address='1.00.0')
             start = float(getattr(self.gui, f"ch{channel}_start_variance").text().strip())
             stop= float(getattr(self.gui, f"ch{channel}_stop_variance").text().strip())
@@ -136,20 +135,20 @@ class AWG_GUI_handler:
                 freq, x = self.fft_signal(w, iota=2)
                 # Plot waveform
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=1)
-                fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=2)
+                fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row = 2, col= 1)
                     
                 self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
                 
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
-            fig.update_xaxes(title_text="F (GHz)", row=1, col=2)
-            fig.update_yaxes(title_text="Power dBm", row=1, col=2)
+            fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
+            fig.update_yaxes(title_text="Power dBm", row = 2, col= 1)
                 
             html = pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
             getattr(self.gui, f"ch{channel}_plot_view").setHtml(html)   
 
         elif waveform_type == "stepLFM":
-            fig = make_subplots(rows = 1, cols = 2, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
+            fig = make_subplots(rows = 2, cols = 1, subplot_titles=(f"channel{channel} waveform", f"channel{channel} FFT"))
             self.generator = WaveformGenerator(ip_address='1.00.0')
             start = float(getattr(self.gui, f"ch{channel}_lfm_start_freq").text().strip())
             stop= float(getattr(self.gui, f"ch{channel}_lfm_stop_freq").text().strip())
@@ -167,13 +166,13 @@ class AWG_GUI_handler:
                 
             fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', 
                                         name=f"{waveform_type}_{start:.2f}-{stop:.2f} GHz"), 
-                                        row=1, col=2)
+                                        row = 2, col= 1)
             self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
             
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Frequency", row=1, col=1)
-            fig.update_xaxes(title_text="F (GHz)", row=1, col=2)
-            fig.update_yaxes(title_text="Power dBm", row=1, col=2)
+            fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
+            fig.update_yaxes(title_text="Power dBm", row = 2, col= 1)
 
             html = pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
             getattr(self.gui, f"ch{channel}_plot_view").setHtml(html)
@@ -182,11 +181,12 @@ class AWG_GUI_handler:
 
     def run(self, channel):
         self.gui.log_box.append(f"no error!")
-        inputs = self.get_channel_inputs(channel=channel)
-            #wave_type = inputs['waveform_selector'].currentText()
-        start_amp = float(inputs[f'ch{channel}_start_amp'].text().strip())
-        stop_amp = float(inputs[f'ch{channel}_stop_amp'].text().strip())
-        step_amp = float(inputs[f'ch{channel}_step_amp'].text().strip())
+        if self.awg == None:
+            QMessageBox.warning(self.gui, "Warning", "Connect to AWG first!!")
+            
+        start_amp = float(getattr(self.gui, f'ch{channel}_start_amp').text().strip())
+        stop_amp = float(getattr(self.gui, f'ch{channel}_stop_amp').text().strip())
+        step_amp = float(getattr(self.gui, f'ch{channel}_step_amp').text().strip())
 
         self.gui.log_box.append(f"Remote path: {self.remote_path}")
         state_1 = self.gui.ch1_upload_check_bx.isChecked()
@@ -310,97 +310,64 @@ class AWG_GUI_handler:
                 'canvas': self.gui.ch2_plot_view,
             }
 
-    def validate_inputs(self, channel, inputs, waveform_type):
+    def validate_inputs(self, channel, waveform_type):
         """Validate inputs based on waveform type"""
-        if channel == 1:
+        if channel == 1 or channel == 2:
+
             if waveform_type == "Sine":
-                if (not inputs['ch1_start_freq'].text().strip() or
-                    not inputs['ch1_stop_freq'].text().strip() or
-                    not inputs['ch1_step_freq'].text().strip() or
-                    not inputs['ch1_start_amp'].text().strip() or 
-                    not inputs['ch1_stop_amp'].text().strip() or
-                    not inputs['ch1_step_amp'].text().strip()):
+                if (not getattr(self.gui, f'ch{channel}_start_freq').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_stop_freq').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_freq').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_start_amp').text().strip() or 
+                    not getattr(self.gui, f'ch{channel}_stop_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_amp').text().strip()):
                     
                     return False, "All inputs are required!!!"
                      
             
             elif waveform_type == "PRBS":
-                if (not inputs['ch1_start_order'].text().strip() or
-                    not inputs['ch1_stop_order'].text().strip() or
-                    not inputs['ch1_step_order'].text().strip() or
-                    not inputs['ch1_start_amp'].text().strip() or 
-                    not inputs['ch1_stop_amp'].text().strip() or
-                    not inputs['ch1_step_amp'].text().strip() or
-                    not inputs['prbs_repetition_rate'].text().strip()):
+                if (not getattr(self.gui, f'ch{channel}_start_order').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_stop_order').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_order').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_start_amp').text().strip() or 
+                    not getattr(self.gui, f'ch{channel}_stop_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_prbs_repetition_rate').text().strip()):
                     return False, "All inputs are required!!!"
+                
             elif waveform_type == "LFM":
-                if (not inputs['ch1_start_center_freq'].text().strip() or
-                    not inputs['ch1_stop_center_freq'].text().strip() or  
-                    not inputs['ch1_step_center_freq'].text().strip() or 
-                    not inputs['lfm_pulse_width'].text().strip() or 
-                    not inputs['lfm_bandwidth'].text().strip() or
-                    not inputs['ch1_start_amp'].text().strip() or
-                    not inputs['ch1_stop_amp'].text().strip() or
-                    not inputs['ch1_step_amp'].text().strip()):
+                if (not getattr(self.gui, f'ch{channel}_start_center_freq').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_stop_center_freq').text().strip() or  
+                    not getattr(self.gui, f'ch{channel}_step_center_freq').text().strip() or 
+                    not getattr(self.gui, f'ch{channel}_lfm_pulse_width').text().strip() or 
+                    not getattr(self.gui, f'ch{channel}_lfm_bandwidth').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_start_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_stop_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_amp').text().strip()):
                     return False, "All inputs are required!!!"
+                
             elif waveform_type == "Noise":
-                if (not inputs['ch1_start_variance'].text().strip() or
-                    not inputs['ch1_stop_variance'].text().strip() or
-                    not inputs['ch1_step_variance'].text().strip() or
-                    not inputs['ch1_start_amp'].text().strip() or 
-                    not inputs['ch1_stop_amp'].text().strip() or
-                    not inputs['ch1_step_amp'].text().strip()):
+                if (not getattr(self.gui, f'ch{channel}_start_variance').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_stop_variance').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_variance').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_start_amp').text().strip() or 
+                    not getattr(self.gui, f'ch{channel}_stop_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_amp').text().strip()):
                     return False, "All inputs are required!!!"
                 
             elif waveform_type == "stepLFM":
-                if (not inputs['ch1_start_lfm_freq'].text().strip() or
-                    not inputs['ch1_stop_lfm_freq'].text().strip() or  
-                    not inputs['ch1_step_lfm_freq'].text().strip() or 
-                    not inputs['ch1_dwell_time'].text().strip() or 
-                    not inputs['ch1_start_amp'].text().strip() or
-                    not inputs['ch1_stop_amp'].text().strip() or
-                    not inputs['ch1_step_amp'].text().strip()):
-                    return False, "All inputs are required!!!"
-                
-            return True, ""
-        elif channel == 2:
-            if waveform_type == "Sine":
-                if (not inputs['ch2_start_freq'].text().strip() or
-                    not inputs['ch2_stop_freq'].text().strip() or
-                    not inputs['ch2_step_freq'].text().strip() or
-                    not inputs['ch2_start_amp'].text().strip() or 
-                    not inputs['ch2_stop_amp'].text().strip() or
-                    not inputs['ch2_step_amp'].text().strip()):
+                if (not getattr(self.gui, f'ch{channel}_lfm_start_freq').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_lfm_stop_freq').text().strip() or  
+                    not getattr(self.gui, f'ch{channel}_lfm_step_freq').text().strip() or 
+                    not getattr(self.gui, f'ch{channel}_lfm_dwell_time').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_start_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_stop_amp').text().strip() or
+                    not getattr(self.gui, f'ch{channel}_step_amp').text().strip()):
                     return False, "All inputs are required!!!"
             
-            elif waveform_type == "PRBS":
-                if (not inputs['ch2_start_order'].text().strip() or
-                    not inputs['ch2_stop_order'].text().strip() or
-                    not inputs['ch2_step_order'].text().strip() or
-                    not inputs['ch2_start_amp'].text().strip() or 
-                    not inputs['ch2_stop_amp'].text().strip() or
-                    not inputs['ch2_step_amp'].text().strip()):
-                    return False, "All inputs are required!!!"
-            elif waveform_type == "LFM":
-                if (not inputs['ch2_start_center_freq'].text().strip() or
-                    not inputs['ch2_stop_center_freq'].text().strip() or  
-                    not inputs['ch2_step_center_freq'].text().strip() or 
-                    not inputs['lfm_pulse_width'].text().strip() or 
-                    not inputs['lfm_bandwidth'].text().strip() or
-                    not inputs['ch2_start_amp'].text().strip() or
-                    not inputs['ch2_stop_amp'].text().strip() or
-                    not inputs['ch2_step_amp'].text().strip()):
-                    return False, "All inputs are required!!!"
-            elif waveform_type == "Noise":
-                if (not inputs['ch2_start_variance'].text().strip() or
-                    not inputs['ch2_stop_variance'].text().strip() or
-                    not inputs['ch2_step_variance'].text().strip() or
-                    not inputs['ch2_start_amp'].text().strip() or 
-                    not inputs['ch2_stop_amp'].text().strip() or
-                    not inputs['ch2_step_amp'].text().strip()):
-                    return False, "All inputs are required!!!"
-               
-            return True, "Inputs are valid!!!"
+                
+            return True, ""
+    
 
     def save_waveform_to_csv(self, waveform_data, waveform_type, channel, folder):
         """Save waveform data to a CSV file."""
@@ -673,14 +640,42 @@ class AWG_GUI_handler:
         self.gui.noise_param_grp.setEnabled(self.gui.noise_check_bx.isChecked())
         self.gui.step_lfm_param_grp.setEnabled(self.gui.step_lfm_check_bx.isChecked())
     
-    def handle_combined_waveform(self):
+    def toggle_ch_bx(self):
+        state_1 = self.gui.ch1_cb.isChecked()
+        state_2 = self.gui.ch2_cb.isChecked()
+        if state_1 and state_2:
+            QMessageBox.warning(self.gui, "Warning!!!!", "Select only one channel at a time!")
+            self.gui.ch1_cb.setChecked(False)
+            self.gui.ch2_cb.setChecked(False)
+
+        elif state_1 and not state_2:
+            # CH1 checked → disable CH2
+            self.gui.ch2_cb.setEnabled(False)
+            self.gui.ch1_cb.setEnabled(True)
+
+        elif state_2 and not state_1:
+            # CH2 checked → disable CH1
+            self.gui.ch1_cb.setEnabled(False)
+            self.gui.ch2_cb.setEnabled(True)
+
+        else:
+            # None checked OR both checked → enable both
+            self.gui.ch1_cb.setEnabled(True)
+            self.gui.ch2_cb.setEnabled(True)
+
+
+    def handle_combined_waveform(self, channel):
         fig = make_subplots(rows=2, cols=1, subplot_titles=("Combined Waveform", "FFT of Combined Waveform"))
 
         # --- number of samples ---
         try:
             num_samples = int(self.gui.num_samples_input.text().strip())
+            start_amp = float(getattr(self.gui, f'ch{channel}_start_amp').text().strip())
+            stop_amp = float(getattr(self.gui, f'ch{channel}_stop_amp').text().strip())
+            step_amp = float(getattr(self.gui, f'ch{channel}_step_amp').text().strip())
+
         except ValueError:
-            QMessageBox.warning(self.gui, "Input Required", "Please enter a valid number of samples")
+            QMessageBox.warning(self.gui, "Input Required", "Please enter all values!")
             self.gui.log_box.append("❌ Please enter a valid number of samples")
             return
 
