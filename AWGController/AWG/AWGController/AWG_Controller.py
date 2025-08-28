@@ -452,10 +452,10 @@ class AWG_Controller:
 
 
     ############### FILE HANDLE #####################
-    def import_file(self, filename):
+    def import_file(self, channel, filename):
         try:
             start_t = time.time()
-            command = f':TRAC1:IQIM 1,"{filename}",CSV,IONL,0'
+            command = f':TRAC{channel}:IQIM 1,"{filename}",CSV,IONL,0'
             self.write_instrument(command=str(command))
 
             query = self.query_instrument(':SYST:ERR?')
@@ -569,21 +569,3 @@ class AWG_Controller:
             self.logger._log_command(command=command, duration_ms= response_t, response=self.query_instrument(":SYST:ERR?"))
             self.print_errors(str(e)) 
        
-
-
-if __name__ == "__main__":
-    '''args = parse_args()
-    instrument = args.instrument
-    ip_address = args.IP
-
-    print(f"Selected instrument: {instrument}\n", f"IP address {ip_address}")
-    
-    awg = AWG_Controller(instrument_name= instrument, ip_address= ip_address)
-    #awg.connect()
-    #awg.set_output_voltage_minmax(1, "MAX")
-    awg.get_output_high_level(1)'''
-
-
-
-
-

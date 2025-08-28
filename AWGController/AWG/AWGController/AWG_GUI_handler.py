@@ -55,15 +55,15 @@ class AWG_GUI_handler:
             start = float(getattr(self.gui, f"ch{channel}_start_freq").text().strip())
             stop= float(getattr(self.gui, f"ch{channel}_stop_freq").text().strip())
             step = float(getattr(self.gui, f"ch{channel}_step_freq").text().strip())
-            
+            i = 1
             for f in np.arange(start, stop + 0.0001, step):
                 t, w = self.generator.sinusoidal(frequency=f)
                 freq, x = self.fft_signal(w, iota=2)
                 # Plot waveform
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w.astype(float), mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=1)
                 fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=2, col=1)                
-                self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
-                
+                self.save_waveform_to_csv(waveform_data= w, waveform_type=f'{waveform_type}_{i}', channel=channel, folder= full_path)
+                i += 1
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
             fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
@@ -79,7 +79,7 @@ class AWG_GUI_handler:
             stop= float(getattr(self.gui, f"ch{channel}_stop_order").text().strip())
             step = float(getattr(self.gui, f"ch{channel}_step_order").text().strip())
             repetition_rate = int(getattr(self.gui, f"ch{channel}_prbs_repetition_rate").text().strip())
-            
+            i = 1
             for f in np.arange(start, stop + 0.0001, step):
                 t, w = self.generator.PRBS(amplitude=1, order=f, repetition_rate=repetition_rate)
                 freq, x = self.fft_signal(w, iota=2)
@@ -87,8 +87,8 @@ class AWG_GUI_handler:
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w, mode='lines', name=f"{waveform_type}_{f:.2f} GHz", line=dict(shape="hv")), row=1, col=1)
                 fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row = 2, col= 1)
                   
-                self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
-                
+                self.save_waveform_to_csv(waveform_data= w, waveform_type=f'{waveform_type}_{i}', channel=channel, folder= full_path)
+                i += 1
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
             fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
@@ -105,7 +105,7 @@ class AWG_GUI_handler:
             step = float(getattr(self.gui, f"ch{channel}_step_center_freq").text().strip())
             pulse_width = int(getattr(self.gui, f"ch{channel}_lfm_pulse_width").text().strip())
             bandwidth = float(getattr(self.gui, f"ch{channel}_lfm_bandwidth").text().strip())
-            
+            i = 1
             for f in np.arange(start, stop + 0.0001, step):
                 t, w = self.generator.generate_lfm(center_freq=f, bandwidth=bandwidth, pulse_width=pulse_width)
                 freq, wave = self.fft_signal(w, iota=2)
@@ -113,8 +113,8 @@ class AWG_GUI_handler:
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=1)
                 fig.add_trace(go.Scatter(x=freq, y=wave, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row = 2, col= 1)
                     
-                self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
-                
+                self.save_waveform_to_csv(waveform_data= w, waveform_type=f'{waveform_type}_{i}', channel=channel, folder= full_path)
+                i += 1
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
             fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
@@ -129,7 +129,7 @@ class AWG_GUI_handler:
             start = float(getattr(self.gui, f"ch{channel}_start_variance").text().strip())
             stop= float(getattr(self.gui, f"ch{channel}_stop_variance").text().strip())
             step = float(getattr(self.gui, f"ch{channel}_step_variance").text().strip())
-            
+            i = 1
             for f in np.arange(start, stop + 0.0001, step):
                 t, w = self.generator.sinusoidal(frequency=f)
                 freq, x = self.fft_signal(w, iota=2)
@@ -137,8 +137,8 @@ class AWG_GUI_handler:
                 fig.add_trace(go.Scatter(x=t * 1e9, y=w, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row=1, col=1)
                 fig.add_trace(go.Scatter(x=freq, y=x, mode='lines', name=f"{waveform_type}_{f:.2f} GHz"), row = 2, col= 1)
                     
-                self.save_waveform_to_csv(waveform_data= w, waveform_type=waveform_type, channel=channel, folder= full_path)
-                
+                self.save_waveform_to_csv(waveform_data= w, waveform_type=f'{waveform_type}_{i}', channel=channel, folder= full_path)
+                i += 1
             fig.update_xaxes(title_text="Time (ns)", row=1, col=1)
             fig.update_yaxes(title_text="Amplitude (V)", row=1, col=1)
             fig.update_xaxes(title_text="F (GHz)", row = 2, col= 1)
@@ -179,20 +179,24 @@ class AWG_GUI_handler:
         self.handle_upload_waveform(file_path=full_path, channel=channel)
         
 
-    def run(self, channel):
-        self.gui.log_box.append(f"no error!")
+    def run(self, channel, combined):
+        self.gui.log_box.append(f"channel {channel} running started")
         if self.awg == None:
             QMessageBox.warning(self.gui, "Warning", "Connect to AWG first!!")
-            
-        start_amp = float(getattr(self.gui, f'ch{channel}_start_amp').text().strip())
-        stop_amp = float(getattr(self.gui, f'ch{channel}_stop_amp').text().strip())
-        step_amp = float(getattr(self.gui, f'ch{channel}_step_amp').text().strip())
+        if not combined:    
+            start_amp = float(getattr(self.gui, f'ch{channel}_start_amp').text().strip())
+            stop_amp = float(getattr(self.gui, f'ch{channel}_stop_amp').text().strip())
+            step_amp = float(getattr(self.gui, f'ch{channel}_step_amp').text().strip())
+        if combined:
+            start_amp = float(self.gui.combined_start_amp.text().strip())
+            stop_amp = float(self.gui.combined_stop_amp.text().strip())
+            step_amp = float(self.gui.combined_step_amp.text().strip())
 
         self.gui.log_box.append(f"Remote path: {self.remote_path}")
         state_1 = self.gui.ch1_upload_check_bx.isChecked()
         state_2 = self.gui.ch2_upload_check_bx.isChecked()
             
-        output_log = self.awg.set_output_state(channel=channel, state=1)
+        
         del_seg_log = self.awg.delete_segment(channel=channel,id=1)
 
         if channel == 1 or state_1:
@@ -212,8 +216,9 @@ class AWG_GUI_handler:
                 self.gui.log_box.append(f"FUll path: {full_path}")
                 self.gui.log_box.append(f"Processing: {file}")
                 seg_log = self.awg.define_segment(channel=channel, segment_id=1, n_sample=720)
-                imp_log = self.awg.import_file(full_path)
+                imp_log = self.awg.import_file(channel=channel, filename=full_path)
                 self.gui.log_box.append(f"{seg_log}")
+                output_log = self.awg.set_output_state(channel=channel, state=1)
                 self.gui.log_box.append(f"no error")
 
                 for amplitude in np.arange(start_amp, stop_amp + 0.001, step_amp):
@@ -383,7 +388,10 @@ class AWG_GUI_handler:
 
             with open(full_path, mode='w', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow(["Y1"])
+                name = ''
+                if channel == 1: name = 'Y1'
+                if channel == 2: name = 'Y2'
+                writer.writerow([name])
                 for value in waveform_data:
                     writer.writerow([value])
             self.gui.log_box.append(f"✅ Channel {channel} waveform data saved to: {full_path}")
@@ -506,8 +514,8 @@ class AWG_GUI_handler:
         x = np.absolute(x)
         N = len(w)
         n = np.arange(N)
-        T = N/ (1e9)  # Convert to time in seconds
-        freq = n/T
+        T = 1/ (7.2e9)  # Convert to time in seconds
+        freq = (n/T)
         return freq/1e9, x
     
     
@@ -665,14 +673,15 @@ class AWG_GUI_handler:
 
 
     def handle_combined_waveform(self, channel):
+        
         fig = make_subplots(rows=2, cols=1, subplot_titles=("Combined Waveform", "FFT of Combined Waveform"))
-
+        self.gui.log_box.append(f"channel {channel} combined waveform generation started")
         # --- number of samples ---
         try:
-            num_samples = int(self.gui.num_samples_input.text().strip())
-            start_amp = float(getattr(self.gui, f'ch{channel}_start_amp').text().strip())
-            stop_amp = float(getattr(self.gui, f'ch{channel}_stop_amp').text().strip())
-            step_amp = float(getattr(self.gui, f'ch{channel}_step_amp').text().strip())
+            num_samples = int(self.gui.num_samples.text().strip())
+            start_amp = float(getattr(self.gui, f'combined_start_amp').text().strip())
+            stop_amp = float(getattr(self.gui, f'combined_stop_amp').text().strip())
+            step_amp = float(getattr(self.gui, f'combined_step_amp').text().strip())
 
         except ValueError:
             QMessageBox.warning(self.gui, "Input Required", "Please enter all values!")
@@ -746,12 +755,10 @@ class AWG_GUI_handler:
         t = np.arange(num_samples) / 7.2e9
 
         # --- save ---
-        self.save_waveform_to_csv(waveform_data=wave, waveform_type="combined", channel='channel', folder=full_path)
+        self.save_waveform_to_csv(waveform_data=wave, waveform_type="combined", channel= channel, folder=full_path)
         if self.gui.ch1_cb.isChecked():
-            channel = 1
             self.handle_upload_waveform(channel=channel, file_path=full_path)
         elif self.gui.ch2_cb.isChecked():
-            channel = 2
             self.handle_upload_waveform(channel=channel, file_path=full_path)
         else:
             QMessageBox.warning(self.gui, "Channel required", "Select a channel")        

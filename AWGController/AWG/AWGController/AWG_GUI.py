@@ -339,7 +339,7 @@ class AWGGui(QMainWindow):
         self.ch1_browse_btn.clicked.connect(lambda: self.handler.handle_browse_file(1))
         self.ch1_upload_btn.clicked.connect(lambda: self.handler.handle_upload_waveform(file_path= self.ch1_file_path_input.text().strip(), channel = 1))
 
-        self.ch1_run_btn.clicked.connect(lambda: self.handler.run(channel=1))
+        self.ch1_run_btn.clicked.connect(lambda: self.handler.run(channel=1, combined=False))
         self.ch1_abort_btn.clicked.connect(lambda: self.handler.handle_abort(1))
 
     def init_channel_2_tab(self):
@@ -536,7 +536,7 @@ class AWGGui(QMainWindow):
 
         self.ch2_browse_btn.clicked.connect(lambda: self.handler.handle_browse_file(2))
         self.ch2_upload_btn.clicked.connect(lambda:self.handler.handle_upload_waveform(file_path= self.ch2_file_path_input.text().strip(), channel=2))
-        self.ch2_run_btn.clicked.connect(lambda: self.handler.run(2))
+        self.ch2_run_btn.clicked.connect(lambda: self.handler.run(channel=2, combined=False))
         self.ch2_abort_btn.clicked.connect(lambda: self.handler.handle_abort(2))
 
     def init_channel_1_output_tab(self):
@@ -581,8 +581,7 @@ class AWGGui(QMainWindow):
        ch_layout = QHBoxLayout()
        self.ch1_cb = QCheckBox("Channel 1")
        self.ch2_cb = QCheckBox("Channel 2")
-       self.ch1_cb.stateChanged.connect(self.handler.toggle_ch_bx)
-       self.ch2_cb.stateChanged.connect(self.handler.toggle_ch_bx)
+       
        ch_layout.addWidget(self.ch1_cb)
        ch_layout.addWidget(self.ch2_cb)
        channel_box.setLayout(ch_layout)
@@ -592,7 +591,6 @@ class AWGGui(QMainWindow):
        self.wave_boxes = []
        self.dropdown_boxes = []
        self.param_groups = []
-       channel = self.select_run_channel()
 
        for i in range(5):
            cb = QCheckBox(f"Waveform {i+1}")
@@ -616,16 +614,21 @@ class AWGGui(QMainWindow):
            side_panel.addWidget(param_group)
 
        # ---- Common parameters ----
+       self.ch1_cb.stateChanged.connect(self.handler.toggle_ch_bx)
+       self.ch2_cb.stateChanged.connect(self.handler.toggle_ch_bx)
        num_samples_group = QGroupBox("Common Parameters")
        num_samples_layout = QFormLayout()
-       self.num_samples_input = QLineEdit()
-       setattr(self, f'ch{channel}_start_amp', QLineEdit())
-       setattr(self, f'ch{channel}_stop_amp', QLineEdit())
-       setattr(self, f'ch{channel}_step_amp', QLineEdit())
-       num_samples_layout.addRow("start amplitude", getattr(self, f'ch{channel}_start_amp'))
-       num_samples_layout.addRow("stop amplitude", getattr(self, f'ch{channel}_stop_amp'))
-       num_samples_layout.addRow("step amplitude", getattr(self, f'ch{channel}_step_amp'))
-       num_samples_layout.addRow("Number of Samples:", self.num_samples_input)
+
+       self.num_samples = QLineEdit()
+       setattr(self, f'combined_start_amp', QLineEdit())
+       setattr(self, f'combined_stop_amp', QLineEdit())
+       setattr(self, f'combined_step_amp', QLineEdit())
+       
+
+       num_samples_layout.addRow("Number of Samples:", self.num_samples)
+       num_samples_layout.addRow("start amplitude", getattr(self, f'combined_start_amp'))
+       num_samples_layout.addRow("stop amplitude", getattr(self, f'combined_stop_amp'))
+       num_samples_layout.addRow("step amplitude", getattr(self, f'combined_step_amp'))
        num_samples_group.setLayout(num_samples_layout)
        side_panel.addWidget(num_samples_group)
 
@@ -656,9 +659,9 @@ class AWGGui(QMainWindow):
        main_panel.addWidget(plot_group)
 
        # ---- Connect buttons ----
-       generate_wave_btn.clicked.connect(lambda: self.handler.handle_combined_waveform(channel=channel))
-       run_btn.clicked.connect(lambda:self.handler.run(channel=channel))
-       abrt_btn.clicked.connect(lambda:self.handler.handle_abort(channel=channel))
+       generate_wave_btn.clicked.connect(lambda: self.handler.handle_combined_waveform(channel= self.select_run_channel()))
+       run_btn.clicked.connect(lambda:self.handler.run(channel=self.select_run_channel(), combined=True))
+       abrt_btn.clicked.connect(lambda:self.handler.handle_abort(channel=self.select_run_channel()))
 
        # ===== COMBINE =====
        layout.addWidget(scroll_area, 1)
@@ -715,10 +718,12 @@ class AWGGui(QMainWindow):
     def select_run_channel(self):
         state_1 = self.ch1_cb.isChecked()
         state_2 = self.ch2_cb.isChecked()
-        if state_1 and not state_2:
-            return 1
-        elif state_2 and not state_1:
-            return 2 
+        if state_1 == True:
+            channel = 1
+            return channel
+        if state_2 == True:
+            channel = 2
+            return channel
 
 
         
