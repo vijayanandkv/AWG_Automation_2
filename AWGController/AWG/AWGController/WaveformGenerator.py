@@ -13,7 +13,7 @@ class WaveformGenerator:
                 self.log._initialize_log_file(f"awg_{ip_address}")
 
     # Sinusoidal wave
-    def sinusoidal(self, frequency, amplitude = 1, sampling_frequency=7.2):
+    def sinusoidal(self, frequency, amplitude = 1, sampling_frequency=8):
         amplitude = float(amplitude)
         frequency = float(frequency) * 1e9  # user gives frequency in GHz
         sampling_frequency = float(sampling_frequency) * 1e9  # user gives sampling frequency in GHz
@@ -33,7 +33,7 @@ class WaveformGenerator:
         print("taps: ", taps)
         return taps[:-1]  # remove x^0 term which is always 1 in primitive polynomials
 
-    def PRBS(self, amplitude, order, repetition_rate, sampling_frequency=7.2, max_bits=None):
+    def PRBS(self, amplitude, order, repetition_rate, sampling_frequency=8, max_bits=None):
         amplitude = float(amplitude)
         order = int(order)
         taps = self.get_taps(order)
@@ -74,7 +74,7 @@ class WaveformGenerator:
         return time, waveform
     
 
-    def generate_lfm(self, center_freq, bandwidth, pulse_width, sampling_freq = 7.2):
+    def generate_lfm(self, center_freq, bandwidth, pulse_width, sampling_freq = 8):
         
         self.sampling_freq = float(sampling_freq) * 1e9  # GHz to Hz
         self.center_freq = float(center_freq) * 1e9  # GHz to Hz
@@ -91,7 +91,7 @@ class WaveformGenerator:
 
         return t, waveform
     
-    def generate_steplfm(self, start_freq, stop_freq, step_freq, dwell_time, sampling_freq=7.2):
+    def generate_steplfm(self, start_freq, stop_freq, step_freq, dwell_time, sampling_freq=8):
         t_total = []
         waveform = []
         sampling_freq = float(sampling_freq) * 1e9  # GHz to Hz

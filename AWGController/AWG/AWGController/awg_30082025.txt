@@ -1,0 +1,20 @@
+Log file created for AWG at 2025-08-30 16:50:37.598824 
+[2025-08-30 16:50:46] SCPI: :TRACE1:DEL 1 | Duration: 19.25 ms | Response: -300,"Device-specific error;CH1: Segment id 1 is not defined."
+
+[2025-08-30 16:50:46] SCPI: :TRAC1:DEF 1,1,720,0 | Duration: -3.60 ms | Response: -300,"Device-specific error;CH1: Segment id 1 has invalid segment length 1."
+
+[2025-08-30 16:50:46] SCPI: :TRAC1:IQIM 1,"C:/Users/Administrator/Desktop/CH/channel_1_20250830_1650/lfm_1.csv",CSV,IONL,0 | Duration: 15.98 ms | Response: 0,"No error"
+
+[2025-08-30 16:50:46] SCPI: :OUTP1 1 | Duration: 1.55 ms
+[2025-08-30 16:50:46] SCPI: :ABOR1 | Duration: 1.48 ms | Response: 0,"No error"
+
+[2025-08-30 16:50:46] SCPI: :VOLT1? | Duration: 2.50 ms | Response: 2.50000000000000E-01
+
+[2025-08-30 16:50:46] SCPI: :VOLT1 0.25 | Duration: 1.54 ms | Response: 0.25
+[2025-08-30 16:50:46] SCPI: :INIT:IMM1 | Duration: 144.83 ms | Response: 0,"No error"
+
+[2025-08-30 16:53:47] SCPI: :ABOR1 | Duration: 253.79 ms | Response: 0,"No error"
+
+[2025-08-30 16:53:47] SCPI: :TRACE1:DEL 1 | Duration: 4.29 ms | Response: 0,"No error"
+
+[2025-08-30 16:53:47] SCPI: :OUTP1 0 | Duration: 84.16 ms

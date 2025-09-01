@@ -693,25 +693,36 @@ class AWGGui(QMainWindow):
                 wf_type = dropdown.currentText()
 
                 if wf_type == "Sine":
-                    layout.addRow("Frequency (GHz):", QLineEdit())
+                    self.combined_freq = QLineEdit()
+                    layout.addRow("Frequency (GHz):", self.combined_freq)
                     
                 elif wf_type == "PRBS":
-                    layout.addRow("Order:", QLineEdit())
-                    layout.addRow("Repetition Rate:", QLineEdit())
+                    self.combined_repetition_rate = QLineEdit()
+                    self.combined_order = QLineEdit()
+                    layout.addRow("Order:", self.combined_order)
+                    layout.addRow("Repetition Rate:", self.combined_repetition_rate)
 
                 elif wf_type == "LFM":
-                    layout.addRow("Center Freq (GHz):", QLineEdit())
-                    layout.addRow("Bandwidth (GHz):", QLineEdit())
-                    layout.addRow("Pulse width (ns): ", QLineEdit())
+                    self.combined_center_freq = QLineEdit()
+                    self.combined_bandwidth = QLineEdit()
+                    self.combined_pulse_width = QLineEdit()
+                    layout.addRow("Center Freq (GHz):", self.combined_center_freq)
+                    layout.addRow("Bandwidth (GHz):", self.combined_bandwidth)
+                    layout.addRow("Pulse width (ns): ", self.combined_pulse_width)
 
                 elif wf_type == "Step LFM":
-                    layout.addRow("Start Frequency (GHz):", QLineEdit())
-                    layout.addRow("Stop Frequency (GHz):", QLineEdit())
-                    layout.addRow("Step Frequency (GHz):", QLineEdit())
-                    layout.addRow("Dwell Time (ns):", QLineEdit())
+                    self.combined_start_freq = QLineEdit()
+                    self.combined_stop_freq = QLineEdit()
+                    self.combined_step_freq = QLineEdit()
+                    self.combined_dwell_time = QLineEdit()
+                    layout.addRow("Start Frequency (GHz):", self.combined_start_freq)
+                    layout.addRow("Stop Frequency (GHz):", self.combined_stop_freq)
+                    layout.addRow("Step Frequency (GHz):", self.combined_step_freq)
+                    layout.addRow("Dwell Time (ns):", self.combined_dwell_time)
 
                 elif wf_type == "Noise":
-                    layout.addRow("Variance:", QLineEdit())
+                    self.combined_variance = QLineEdit()
+                    layout.addRow("Variance:", self.combined_variance)
 
                 param_group.setVisible(True)
 

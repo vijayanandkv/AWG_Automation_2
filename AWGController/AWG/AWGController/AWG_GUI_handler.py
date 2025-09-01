@@ -10,7 +10,7 @@ import math
 import csv
 from scipy import signal
 import numpy as np
-from numpy.fft import fft
+from numpy.fft import fft, fftshift, fftfreq
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -232,7 +232,7 @@ class AWG_GUI_handler:
                         out_volt_log = self.awg.set_output_voltage_custom(channel=channel, value=amplitude)
                                                 
                         init_log = self.awg.initiate_signal(channel=channel)
-                        time.sleep(60)
+                        time.sleep(180)
                     init_thread = threading.Thread(target=initiate_signal)
                     init_thread.start()
                     init_thread.join()
@@ -509,14 +509,23 @@ class AWG_GUI_handler:
                 pass
         event.accept()
 
-    def fft_signal(self, w, iota):
-        x = fft(w)
-        x = np.absolute(x)
+    def fft_signal(self, w, sampling_freq=8e9, iota=2):
+        """
+        Compute FFT of signal and return shifted frequency axis.
+
+        Args:
+            w (ndarray): input waveform
+            sampling_freq (float): sampling frequency in Hz (default 8 GHz)
+        """
         N = len(w)
-        n = np.arange(N)
-        T = 1/ (7.2e9)  # Convert to time in seconds
-        freq = (n/T)
-        return freq/1e9, x
+        # FFT
+        x = fftshift(fft(w))
+        x = np.abs(x) / N   # normalize magnitude
+
+        # Frequency axis
+        freq = fftshift(fftfreq(N, d=1/sampling_freq)) / 1e9
+
+        return freq, x
     
     
     def toggle_upload_check(self, channel):
@@ -722,28 +731,28 @@ class AWG_GUI_handler:
 
             # --- generate waveform based on type ---
             if wf_type == "Sine":
-                frequency = float(params.get("Frequency", 1e6))
+                frequency = float(params.get("Frequency", float(self.gui.combined_freq.text().strip())))
                 t, w = combined_waveform.sinusoidal(num_samples=num_samples, frequency=frequency)
             elif wf_type == "PRBS":
-                order = int(params.get("Order", 7))
-                repetition_rate = int(params.get("Repetition Rate", 1e6))
+                order = int(params.get("Order", self.gui.combined_order.text().strip()))
+                repetition_rate = int(params.get("Repetition Rate", self.gui.combined_repetition_rate.text().strip()))
                 t, w = combined_waveform.PRBS(num_samples=num_samples, order=order, repetition_rate=repetition_rate)
             elif wf_type == "LFM":
-                center_freq = float(params.get("Center Freq", 1e6))
-                bandwidth = float(params.get("Bandwidth", 1e6))
-                pulse_width = int(params.get("Pulse Width", 100))
+                center_freq = float(params.get("Center Freq", self.gui.combined_center_freq.text().strip()))
+                bandwidth = float(params.get("Bandwidth", self.gui.combined_bandwidth.text().strip()))
+                pulse_width = int(params.get("Pulse Width", self.gui.combined_pulse_width.text().strip()))
                 t, w = combined_waveform.generate_lfm(num_samples=num_samples, center_freq=center_freq,
                                                       bandwidth=bandwidth, pulse_width=pulse_width)
             elif wf_type == "Step LFM":
-                start_freq = float(params.get("Start Freq", 1e6))
-                stop_freq = float(params.get("Stop Freq", 2e6))
-                step_freq = float(params.get("Step Freq", 1e5))
-                dwell_time = float(params.get("Dwell Time", 10))
+                start_freq = float(params.get("Start Freq", self.gui.combined_start_freq.text().strip()))
+                stop_freq = float(params.get("Stop Freq", self.gui.combined_stop_freq.text().strip()))
+                step_freq = float(params.get("Step Freq", self.gui.combined_step_freq.text().strip()))
+                dwell_time = float(params.get("Dwell Time", self.gui.combined_dwell_time.text().strip()))
                 t, w = combined_waveform.generate_steplfm(num_samples=num_samples, start_freq=start_freq,
                                                           stop_freq=stop_freq, step_freq=step_freq,
                                                           dwell_time=dwell_time)
             elif wf_type == "Noise":
-                variance = float(params.get("Variance", 1))
+                variance = float(params.get("Variance", self.gui.combined_variance.text().strip()))
                 t, w = combined_waveform.generate_noise(num_samples=num_samples, variance=variance)
             else:
                 continue

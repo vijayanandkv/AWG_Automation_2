@@ -5,11 +5,11 @@ class CombinedWaveformGenerator:
     def __init__(self):
         pass
 
-    def sinusoidal(self, frequency, num_samples, sampling_frequency=7.2):
+    def sinusoidal(self, frequency, num_samples, sampling_frequency=8):
         frequency = frequency * 1e9
         sampling_frequency = sampling_frequency * 1e9
 
-        t = np.arange(num_samples) / sampling_frequency
+        t = np.arange(0, num_samples) / sampling_frequency
         wave = np.sin(2 * np.pi * frequency * t)
         return t, wave
     def get_taps(self, order):
@@ -75,21 +75,37 @@ class CombinedWaveformGenerator:
         return time, waveform
     
 
-    def generate_lfm(self, center_freq, bandwidth, pulse_width, num_samples, sampling_freq = 7.2):
-        
-        self.sampling_freq = float(sampling_freq) * 1e9  # GHz to Hz
-        self.center_freq = float(center_freq) * 1e9  # GHz to Hz
-        self.num_samples = num_samples 
-        self.pulse_width = float(pulse_width) * 1e-9
-        self.bandwidth = float(bandwidth * 1e9)
-        self.k = self.bandwidth/self.pulse_width
-        
+    def generate_lfm(self, center_freq, bandwidth, pulse_width, num_samples,
+                     sampling_freq=8, pulse_repetition_rate=1e6):
+   
 
-        self.f0 = float(self.center_freq - self.bandwidth / 2)
-        self.f1 = float(self.center_freq + self.bandwidth / 2)
+        # Convert units
+        self.sampling_freq = float(sampling_freq) * 1e9  # GHz → Hz
+        self.center_freq = float(center_freq) * 1e9
+        self.num_samples = num_samples
+        self.pulse_width = float(pulse_width) * 1e-9     # ns → s
+        self.bandwidth = float(bandwidth) * 1e9
 
-        t = np.arange(0, self.num_samples)/ self.sampling_freq
-        waveform = np.cos(2*np.pi * ((self.f0 * t) + (self.k/2) * (t ** 2)))   #signal.chirp(t, f0=self.f0, f1=self.f1, t1=self.num_samples, method='linear') 
+        # Chirp rate
+        self.k = self.bandwidth / self.pulse_width
+
+        self.f0 = self.center_freq - self.bandwidth / 2
+        self.f1 = self.center_freq + self.bandwidth / 2
+
+        # Time vector
+        t = np.arange(0, self.num_samples) / self.sampling_freq
+        waveform = np.zeros_like(t)
+
+        # Pulse repetition interval
+        pri = 1.0 / pulse_repetition_rate
+        samples_per_pulse = int(self.pulse_width * self.sampling_freq)
+        samples_per_pri = int(pri * self.sampling_freq)
+
+        # Generate repeated LFM pulses
+        for start in range(0, self.num_samples, samples_per_pri):
+            end = min(start + samples_per_pulse, self.num_samples)
+            t_segment = t[start:end] - t[start]  # reset time for chirp
+            waveform[start:end] = np.cos(2*np.pi * (self.f0 * t_segment + (self.k/2) * (t_segment**2)))
 
         return t, waveform
     def generate_steplfm(self, start_freq, stop_freq, step_freq, dwell_time, num_samples, sampling_freq=7.2):
