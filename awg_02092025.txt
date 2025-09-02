@@ -1,0 +1,2 @@
+Log file created for AWG at 2025-09-02 14:02:25.082808 
+[2025-09-02 14:02:25] SCPI: generate step LFM wave | Response: Successfully generated
