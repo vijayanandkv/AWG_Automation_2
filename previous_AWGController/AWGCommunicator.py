@@ -15,14 +15,10 @@ from logger import awg_logger
 class AWGCommunicator(QThread):
     log = pyqtSignal(str)   # define a signal
 
-    def __init__(self, channel, amplitude_dict, local_path, remote_path):
+    def __init__(self):
         super().__init__()
         self.awg = None
-        self.channel = channel
-        self.amps = amplitude_dict
-        self.local_path = local_path
-        self.remote_path = remote_path
-
+        
     def connect_awg(self, ip_address):
         ip = ip_address        
 
@@ -41,6 +37,12 @@ class AWGCommunicator(QThread):
                 self.awg = None
             except Exception as e:
                 print(f'Error!!!!! \n {e}')
+                
+    def set_params(self, channel, amplitude_dict, local_path, remote_path):
+        self.channel = channel
+        self.amps = amplitude_dict
+        self.local_path = local_path
+        self.remote_path = remote_path
 
     def run(self):
 

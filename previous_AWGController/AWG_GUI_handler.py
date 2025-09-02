@@ -31,6 +31,7 @@ class AWG_GUI_handler:
     def __init__(self, gui_instance):
         self.gui = gui_instance
         self.awg = None
+        self.worker = AWGCommunicator()
 
 
     def handle_generate_waveform(self, channel):
@@ -208,9 +209,10 @@ class AWG_GUI_handler:
             remote_path = os.path.join(self.remote_path, self.folder_name).replace("\\", "/")
 
             try:
-                self.worker_ch1 = AWGCommunicator(channel, amplitude_dict, file_path, remote_path)
-                self.worker_ch1.log.connect(self.gui.log_box.append) 
-                self.worker_ch1.start()
+                worker_ch1 = AWGCommunicator()
+                worker_ch1.set_params(channel, amplitude_dict, file_path, remote_path)
+                worker_ch1.log.connect(self.gui.log_box.append) 
+                worker_ch1.start()
 
             except Exception as e:
                 self.gui.log_box.append(f'error!!! {e}')
@@ -242,9 +244,10 @@ class AWG_GUI_handler:
             remote_path = os.path.join(self.remote_path, self.folder_name).replace("\\", "/")
             try:
             
-               self.worker_ch2 = AWGCommunicator(channel, amplitude_dict, file_path, remote_path)
-               self.worker_ch2.log.connect(self.gui.log_box.append) 
-               self.worker_ch2.start()
+               worker_ch2 = AWGCommunicator()
+               worker_ch2.set_params(channel, amplitude_dict, file_path, remote_path)
+               worker_ch2.log.connect(self.gui.log_box.append) 
+               worker_ch2.start()
 
             except Exception as e:
                 self.gui.log_box.append(f'error!!! {e}')
@@ -429,7 +432,7 @@ class AWG_GUI_handler:
             self.gui.status_light.set_connected(False)
             return
         try:
-            self.awg = self.connector.connect_awg(ip_address=ip)
+            self.awg = self.worker.connect_awg(ip_address=ip)
             if self.awg != None:
                 self.gui.status_light.set_connected(True)
                 self.update_channel_buttons()
@@ -446,7 +449,7 @@ class AWG_GUI_handler:
         """Handle AWG disconnection"""
         if self.awg:
             try:
-                self.connector.disconnect_awg()
+                self.worker.disconnect_awg()
                 self.gui.status_light.set_connected(False)
                 self.gui.log_box.append("🔌 Disconnected from AWG")
 
@@ -501,7 +504,7 @@ class AWG_GUI_handler:
             return
         
         try:
-            status = self.connector.abort_awg_run(channel)
+            status = self.worker.abort_awg_run(channel)
             self.gui.log_box.append(f"{status}")
         except Exception as e:
             self.gui.log_box.append(f"❌ Failed to abort waveform generation: {e}")
