@@ -1,1 +1,12 @@
-Log file created for AWG at 2025-09-01 09:46:04.420280 
+Log file created for AWG at 2025-09-01 15:23:01.247688 
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
+[2025-09-01 15:23:01] SCPI: generate sine wave | Response: Successfully generated
