@@ -209,10 +209,12 @@ class AWG_GUI_handler:
             remote_path = os.path.join(self.remote_path, self.folder_name).replace("\\", "/")
 
             try:
-                worker_ch1 = AWGCommunicator()
-                worker_ch1.set_params(channel, amplitude_dict, file_path, remote_path)
-                worker_ch1.log.connect(self.gui.log_box.append) 
-                worker_ch1.start()
+                self.worker_ch1 = AWGCommunicator()
+                self.worker_ch1.setParent(self.gui)  # Set parent to the main GUI
+                self.worker_ch1.set_params(channel, amplitude_dict, file_path, remote_path)
+                self.worker_ch1.log.connect(self.gui.log_box.append) 
+                self.worker_ch1.finished.connect(self.worker_ch1.deleteLater)  # Clean up thread after finishing
+                self.worker_ch1.start()
 
             except Exception as e:
                 self.gui.log_box.append(f'error!!! {e}')
@@ -244,10 +246,12 @@ class AWG_GUI_handler:
             remote_path = os.path.join(self.remote_path, self.folder_name).replace("\\", "/")
             try:
             
-               worker_ch2 = AWGCommunicator()
-               worker_ch2.set_params(channel, amplitude_dict, file_path, remote_path)
-               worker_ch2.log.connect(self.gui.log_box.append) 
-               worker_ch2.start()
+               self.worker_ch2 = AWGCommunicator()
+               self.worker_ch2.setParent(self.gui)  # Set parent to the main GUI
+               self.worker_ch2.set_params(channel, amplitude_dict, file_path, remote_path)
+               self.worker_ch2.log.connect(self.gui.log_box.append) 
+               self.worker_ch2.finished.connect(self.worker_ch2.deleteLater)  # Clean up thread after finishing
+               self.worker_ch2.start()
 
             except Exception as e:
                 self.gui.log_box.append(f'error!!! {e}')
@@ -436,13 +440,13 @@ class AWG_GUI_handler:
             if self.awg != None:
                 self.gui.status_light.set_connected(True)
                 self.update_channel_buttons()
-                self.gui.logs_tab.setEnabled(True)
+                self.gui.combined_waveform.setEnabled(True)
             else:
                 QMessageBox.warning(self.gui, "Connection failed", f"{self.awg}")
 
         except Exception as e:
             QMessageBox.warning(self.gui, 'Error!!', f"Connection error \n {e}")
-            self.gui.log_bix.append(f"failed to connect to AWG {e}")
+            self.gui.log_box.append(f"failed to connect to AWG {e}")
 
         
     def handle_disconnect(self):
@@ -504,20 +508,38 @@ class AWG_GUI_handler:
             return
         
         try:
+            if channel == 1 and hasattr(self, 'worker_ch1') and self.worker_ch1 is not None:
+                self.worker_ch1.stop()
+                self.worker_ch1.quit()
+                self.worker_ch1.wait()
+                self.gui.log_box.append("🔴 Channel 1 waveform generation aborted")
+
+            elif channel == 2 and hasattr(self, 'worker_ch2') and self.worker_ch2 is not None:
+                self.worker_ch2.stop()
+                self.worker_ch2.quit()
+                self.worker_ch2.wait()
+                self.gui.log_box.append("🔴 Channel 2 waveform generation aborted")
+
             status = self.worker.abort_awg_run(channel)
             self.gui.log_box.append(f"{status}")
         except Exception as e:
             self.gui.log_box.append(f"❌ Failed to abort waveform generation: {e}")
 
-    '''def closeEvent(self, event):
+    def closeEvent(self, event):
 
         """Handle application close event"""
-        if self.awg:
-            try:
-                self.awg.disconnect()
-            except:
-                pass
-        event.accept()'''
+        if self.awg is not None:
+            if hasattr(self, 'worker_ch1') and self.worker_ch1 is not None and self.worker_ch1.isRunning():
+                self.worker_ch1.stop()
+                self.worker_ch1.quit()
+                self.worker_ch1.wait()
+            if hasattr(self, 'worker_ch2') and self.worker_ch2 is not None and self.worker_ch2.isRunning():
+                self.worker_ch2.stop()
+                self.worker_ch2.quit()
+                self.worker_ch2.wait()
+            self.awg.disconnect()
+            
+        event.accept()
 
     def fft_signal(self, w, sampling_freq=8e9, iota=2):
         """

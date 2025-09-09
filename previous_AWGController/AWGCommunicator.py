@@ -18,6 +18,7 @@ class AWGCommunicator(QThread):
     def __init__(self):
         super().__init__()
         self.awg = None
+        self._running = True
         
     def connect_awg(self, ip_address):
         ip = ip_address        
@@ -43,9 +44,13 @@ class AWGCommunicator(QThread):
         self.amps = amplitude_dict
         self.local_path = local_path
         self.remote_path = remote_path
+    def stop(self):
+        self._running = False
 
     def run(self):
-
+        if self.awg is None:
+            self.log.emit("AWG not connected. Please connect to the AWG first.")
+            return
         try:
             # clear any previous segment
             del_seg_log = self.awg.delete_segment(channel=self.channel, id=1)
@@ -77,7 +82,10 @@ class AWGCommunicator(QThread):
 
                     self.log.emit(f'Current amplitude is {amplitude} V')
 
-                    time.sleep(180)  # wait for this amplitude
+                    for _ in range(180):
+                        if not self._running:
+                            return
+                        time.sleep(1)
 
                 # cleanup for this file
                 abrt_log = self.awg.abort_wave_generation(channel=self.channel)
