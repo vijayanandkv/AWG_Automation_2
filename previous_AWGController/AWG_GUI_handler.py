@@ -32,6 +32,7 @@ class AWG_GUI_handler:
         self.gui = gui_instance
         self.awg = None
         self.worker = AWGCommunicator()
+        
 
 
     def handle_generate_waveform(self, channel):
@@ -186,6 +187,7 @@ class AWG_GUI_handler:
             self.gui.log_box.append(f"channel {channel} running started")
             if self.awg == None:
                 QMessageBox.warning(self.gui, "Warning", "Connect to AWG first!!")
+                return
 
 
             amplitude_dict = {}
@@ -436,17 +438,19 @@ class AWG_GUI_handler:
             self.gui.status_light.set_connected(False)
             return
         try:
-            self.awg = self.worker.connect_awg(ip_address=ip)
-            if self.awg != None:
+            self.awg = AWG_Controller(ip)
+            connect = self.awg.connect()
+            if connect:
                 self.gui.status_light.set_connected(True)
                 self.update_channel_buttons()
-                self.gui.combined_waveform.setEnabled(True)
+                self.gui.combined_waveform_tab.setEnabled(True)
+                self.gui.log_box.append(f"🔌 Connected to AWG at {ip}")
             else:
-                QMessageBox.warning(self.gui, "Connection failed", f"{self.awg}")
+                QMessageBox.warning(self.gui, "Connection failed", f"Connection failed \n Ensure AWG and PC are on same network!")
 
         except Exception as e:
             QMessageBox.warning(self.gui, 'Error!!', f"Connection error \n {e}")
-            self.gui.log_box.append(f"failed to connect to AWG {e}")
+            self.gui.log_box.append(f"failed to connect to AWG \n {e}")
 
         
     def handle_disconnect(self):
@@ -463,13 +467,16 @@ class AWG_GUI_handler:
 
     def update_channel_buttons(self):
         """Update channel button states based on connection"""
-        state, log = self.awg.is_connected()
-        if state:
-            self.gui.log_box.append(log)
-            self.gui.ch1_on_btn.setEnabled(state)
-            self.gui.ch1_off_btn.setEnabled(state)
-            self.gui.ch2_on_btn.setEnabled(state)
-            self.gui.ch2_off_btn.setEnabled(state)
+        if self.awg is not None: 
+            state, log = self.awg.is_connected()
+            if state:
+                self.gui.log_box.append(log)
+                self.gui.ch1_on_btn.setEnabled(state)
+                self.gui.ch1_off_btn.setEnabled(state)
+                self.gui.ch2_on_btn.setEnabled(state)
+                self.gui.ch2_off_btn.setEnabled(state)
+        else:
+            self.gui.log_box.append("❌ AWG not connected")
        
 
     def handle_channel_enable(self, channel):
@@ -504,7 +511,7 @@ class AWG_GUI_handler:
 
     def handle_abort(self, channel):
         """Abort waveform generation for specified channel"""
-        if not self.check_awg_connection():
+        if not self.awg.is_connected():
             return
         
         try:

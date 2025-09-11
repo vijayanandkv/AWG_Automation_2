@@ -20,16 +20,16 @@ class AWGCommunicator(QThread):
         self.awg = None
         self._running = True
         
-    def connect_awg(self, ip_address):
+    '''def connect_awg(self, ip_address):
         ip = ip_address        
 
         try:
             self.awg = AWG_Controller(ip_address=ip)
-            self.connected = self.awg.connect()   
-            return self.awg  
+            self.awg.connect()   
+            return self.awg 
         except Exception as e:
             print(f'Error!!!! \n {e}')
-            return None
+            return None'''
 
     def disconnect_awg(self):
         if self.awg:
